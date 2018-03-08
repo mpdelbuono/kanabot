@@ -187,25 +187,34 @@ function convertRomajiToHiragana(romaji) {
 
 MessageReplier.prototype.execute = function() {
     var message = this.message; // needed because the below lambdas will destroy 'this'
+    message.channel.startTyping();
+    try 
+    {
+        // Call into phantomjs, pass data, and wait for response
+        console.log(`Executing transliteration for ${this.sentence} (request by ${this.message.author.tag})`);
+        var phantomjs = spawn("phantomjs", ["./translator-module.phantom.js"]);
+        phantomjs.stdin.write(this.sentence);
+        phantomjs.stdin.end();
 
-    // Call into phantomjs, pass data, and wait for response
-    console.log(`Executing transliteration for ${this.sentence} (request by ${this.message.author.tag})`);
-    var phantomjs = spawn("phantomjs", ["./translator-module.phantom.js"]);
-    phantomjs.stdin.write(this.sentence);
-    phantomjs.stdin.end();
+        var result = "";
+        phantomjs.stdout.on('data', (data) => {
+            result = result + data;
+        })
+        phantomjs.on('close', (code) => {
+            console.log(`Transliteration completed with code ${code}`)
+            if (code != 0) {
+                message.reply("Sorry, an error occurred.");
+                message.channel.stopTyping();
+            } else {
+                message.reply(convertRomajiToHiragana(result.trim()));
+                message.channel.stopTyping();
+            }
+        })
+    } catch (ex) {
+        console.error(`An error occurred during transliteration: ${ex}`)
+        message.channel.stopTyping();
+    }
 
-    var result = "";
-    phantomjs.stdout.on('data', (data) => {
-        result = result + data;
-    })
-    phantomjs.on('close', (code) => {
-        console.log(`Transliteration completed with code ${code}`)
-        if (code != 0) {
-            message.reply("Sorry, an error occurred.");
-        } else {
-            message.reply(convertRomajiToHiragana(result.trim()));
-        }
-    })
 }
 
 

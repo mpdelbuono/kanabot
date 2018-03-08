@@ -65,8 +65,7 @@ describe("CommandResolverStrategy", function() {
                     }
 
                     this.create = function(msg) {
-                        fail("incorrect factory called");
-                        return new MockCommand();
+                        throw new Error("incorrect factory called");
                     }
                 }
 

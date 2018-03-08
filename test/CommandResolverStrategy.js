@@ -5,7 +5,6 @@ var expect = require('chai').expect
 var MockCommand = function(callback = null) {
     this.callback = callback;
     this.execute = function() {
-        console.log("callback");
         if (this.callback) {
             this.callback();
         }

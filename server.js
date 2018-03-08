@@ -2,7 +2,11 @@ const Discord = require('discord.js')
 const client = new Discord.Client()
 
 client.on('ready', () => {
-    console.log('System connected: ' + client.user.tag)
+    console.log(`System connected: ${client.user.tag}`)
+});
+
+client.on('message', (msg) => {
+    
 });
 
 // Note: discord.js provides us no mechanism with which to catch the failed

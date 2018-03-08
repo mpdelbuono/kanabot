@@ -34,4 +34,36 @@ describe("KanaCommand", function() {
             it("Includes katakana where it was in the original message");
         });
     });
+
+    describe("#_convertRomajiToKana(text)", function() {
+        it("Converts a series of romaji characters into hiragana equivalents", function() {
+            expect(this.command._convertRomajiToKana("nihonjindesu")).to.equal("にほんじんです");
+        });
+
+        it("Converts long vowels to their appropriate double vowel representations", function() {
+            expect(this.command._convertRomajiToKana("ohayō")).to.equal("おはよう");
+        });
+
+        it("Handles double consonants correctly", function() {
+            expect(this.command._convertRomajiToKana("konnichiwa")).to.equal("こんにちわ"); // note the intentional error in わ here because
+                                                                                          // particles are not yet handled
+            expect(this.command._convertRomajiToKana("chotto")).to.equal("ちょっと");
+        })
+
+        it("Preserves spaces", function() {
+            expect(this.command._convertRomajiToKana("yoroshiku onegaishimasu")).to.equal("よろしく おねがいします");
+        });
+
+        it("Ignores capitalization", function() {
+            expect(this.command._convertRomajiToKana("Yoroshiku")).to.equal("よろしく");
+        });
+
+        it("Strips apostrophes", function() {
+            expect(this.command._convertRomajiToKana("kon'nichiwa")).to.equal("こんにちわ"); // again, intentional error due to particle
+        });
+
+        it("Processes complex kana before basic kana to avoid erroneous transliterations", function() {
+            expect(this.command._convertRomajiToKana("tani")).to.equal("たに"); // not たんい
+        });
+    })
 });

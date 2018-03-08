@@ -174,6 +174,16 @@ function convertRomajiToHiragana(romaji) {
     romaji = romaji.replace(/ē/gi, "ei");
     romaji = romaji.replace(/ō/gi, "ou");
 
+    // Perform particle replacement early. This is our best chance to identify particles before they get
+    // too blended to identify.
+    romaji = romaji.replace(/ wa /gi, "は "); // bind particle to the preceding word, as per convention
+    romaji = romaji.replace(/ o /gi, "を ");
+    romaji = romaji.replace(/ e /gi, "へ ");
+    
+    // Some words get the particle attached. Handle these manually
+    romaji = romaji.replace(/kon'?nichiwa/gi, "こんにちは");
+    romaji = romaji.replace(/kon'?banwa/gi, "こんばんは");
+
     // Run through the kana table
     KANA_TABLE.forEach((transliteration) => {
         romaji = romaji.replace(transliteration.ro, transliteration.hi)
@@ -181,6 +191,9 @@ function convertRomajiToHiragana(romaji) {
 
     // Strip apostrophes. We do this after the kana table because it can help with the 'n' resolution.
     romaji = romaji.replace(/'/g, "");
+
+    // Use full-width spaces
+    romaji = romaji.replace(/ /g, "　");
 
     return romaji;
 }

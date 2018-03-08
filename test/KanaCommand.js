@@ -45,13 +45,12 @@ describe("KanaCommand", function() {
         });
 
         it("Handles double consonants correctly", function() {
-            expect(this.command._convertRomajiToKana("konnichiwa")).to.equal("こんにちわ"); // note the intentional error in わ here because
-                                                                                          // particles are not yet handled
+            expect(this.command._convertRomajiToKana("konnichiwa")).to.equal("こんにちは");
             expect(this.command._convertRomajiToKana("chotto")).to.equal("ちょっと");
         })
 
-        it("Preserves spaces", function() {
-            expect(this.command._convertRomajiToKana("yoroshiku onegaishimasu")).to.equal("よろしく おねがいします");
+        it("Preserves spaces as full-width spaces", function() {
+            expect(this.command._convertRomajiToKana("yoroshiku onegaishimasu")).to.equal("よろしく　おねがいします");
         });
 
         it("Ignores capitalization", function() {
@@ -59,11 +58,31 @@ describe("KanaCommand", function() {
         });
 
         it("Strips apostrophes", function() {
-            expect(this.command._convertRomajiToKana("kon'nichiwa")).to.equal("こんにちわ"); // again, intentional error due to particle
+            expect(this.command._convertRomajiToKana("kon'nichiwa")).to.equal("こんにちは");
         });
 
         it("Processes complex kana before basic kana to avoid erroneous transliterations", function() {
             expect(this.command._convertRomajiToKana("tani")).to.equal("たに"); // not たんい
+        });
+
+        it("Processes particle は", function() {
+            expect(this.command._convertRomajiToKana("watashi wa nihonjindesu")).to.equal("わたしは　にほんじんです");
+        })
+
+        it("Processes particle を", function() {
+            expect(this.command._convertRomajiToKana("inu o kudasai")).to.equal("いぬを　ください");
+        })
+
+        it("Processes particle へ", function() {
+            expect(this.command._convertRomajiToKana("nihon e unten shitai")).to.equal("にほんへ　うんてん　したい");
+        });
+
+        it("Correctly resolves こんにちは", function() {
+            expect(this.command._convertRomajiToKana("kon'nichiwa")).to.equal("こんにちは");
+        });
+
+        it("Correctly resolves こんばんは", function() {
+            expect(this.command._convertRomajiToKana("kon'banwa")).to.equal("こんばんは");
         });
     })
 });

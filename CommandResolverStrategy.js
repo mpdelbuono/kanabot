@@ -11,16 +11,14 @@ var CommandResolverStrategy = function() {
 
 // Selects the appropriate Command object and returns it
 // for the specified message. Returns null if there was no match.
-CommandResolverStrategy.prototype.create = function(msg) {
+CommandResolverStrategy.prototype.notify = function(msg) {
     // Try each factory
     for (let factory of this._registeredFactories) {
         if (factory.matches(msg)) {
-            return factory.create(msg);
+            var command = factory.create(msg);
+            command.execute();
         }
     };
-
-    // If we got here, no factory matched
-    return null;
 };
 
 // Registers the specified factory into the list

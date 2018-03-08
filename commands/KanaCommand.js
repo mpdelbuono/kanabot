@@ -1,5 +1,5 @@
 const { spawn } = require('child_process');
-var kanaMatcher = RegExp("^~kana(?:\\s*(.+))?$");
+var kanaMatcher = RegExp("^~(kana|rom)(?:\\s*(.+))?$");
 var Command = function() {
     this.matches = function(message) {
         return kanaMatcher.test(message.content);
@@ -21,7 +21,8 @@ var MessageReplier = function(message) {
     this.message = message;
 
     var result = kanaMatcher.exec(message);
-    this.sentence = result[1];
+    this.type = result[1];
+    this.sentence = result[2];
 }
 
 // Note that we go in a semi-reversed order so that we don't do replacements like a ->　あ before ka -> か which
@@ -200,6 +201,7 @@ function convertRomajiToHiragana(romaji) {
 
 MessageReplier.prototype.execute = function() {
     var message = this.message; // needed because the below lambdas will destroy 'this'
+    var convertToKana = (this.type == "kana");
     message.channel.startTyping();
     try 
     {
@@ -219,7 +221,11 @@ MessageReplier.prototype.execute = function() {
                 message.reply("Sorry, an error occurred.");
                 message.channel.stopTyping();
             } else {
-                message.reply(convertRomajiToHiragana(result.trim()));
+                result = result.trim();
+                if (convertToKana) {
+                    result = convertRomajiToHiragana(result);
+                }
+                message.reply(result);
                 message.channel.stopTyping();
             }
         })

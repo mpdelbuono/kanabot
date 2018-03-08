@@ -11,10 +11,16 @@ describe("KanaCommand", function() {
     })
     describe("#matches(message)", function() {
         it("matches all messages starting with ~kana", function() {
-            expect(this.command.matches("~kana 日本語")).is.true
-            expect(this.command.matches("~kana")).is.true;
-            expect(this.command.matches("~kanano")).is.false
+            expect(this.command.matches("~kana 日本語")).to.equal(true);
+            expect(this.command.matches("~kana")).to.equal(true);
+            expect(this.command.matches("~kanano")).to.equal(false);
         });
+
+        it("matches all messages starting with ~rom", function() {
+            expect(this.command.matches("~rom 日本語")).to.equal(true);
+            expect(this.command.matches("~rom")).to.equal(true);
+            expect(this.command.matches("~romno")).to.equal(false);
+        })
         it("Matches messages containing Japanese characters");
         it("Does not fail if no previous message was received on a check-last message");
     });
@@ -33,6 +39,10 @@ describe("KanaCommand", function() {
             it("Replies with an appropriate hiragana transliteration");
             it("Includes katakana where it was in the original message");
         });
+
+        describe("if using ~rom", function() {
+            it("Replies with romaji instead of kana");
+        })
     });
 
     describe("#_convertRomajiToKana(text)", function() {

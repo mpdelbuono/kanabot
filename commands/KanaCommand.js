@@ -250,7 +250,7 @@ MessageReplier.prototype.execute = function() {
     {
         // Call into phantomjs, pass data, and wait for response
         console.log(`Executing transliteration for ${this.sentence} (request by ${this.message.author.tag})`);
-        var phantomjs = spawn("phantomjs", ["./translator-module.phantom.js"]);
+        var phantomjs = spawn("phantomjs", ["--ignore-ssl-errors=true", "./translator-module.phantom.js"]);
         phantomjs.stdin.write(this.sentence);
         phantomjs.stdin.end();
 

@@ -1,15 +1,42 @@
 const { spawn } = require('child_process');
 var kanaMatcher = RegExp("^~(kana|rom)(?:\\s+(.+))?$");
+var japaneseMatcher = RegExp("[\\u3040-\\u30ff\\u3400-\\u4dbf\\u4e00-\\u9fff\\uf900-\\ufaff\\uff66-\\uff9f]")
 var Command = function() {
+    // memoizes the result of the regex to optimize
+    this._containsJapanese = function(message) {
+        if (message._containsJapanese != undefined) return message._containsJapanese;
+        else {
+            message._containsJapanese = japaneseMatcher.test(message.content);
+            return message._containsJapanese;
+        }
+    }
+
+    // another memoizing function
+    this._containsKanaCommand = function(message) {
+        if (message._containsKanaCommand != undefined) return message._containsKanaCommand;
+        else {
+            message._containsKanaCommand = kanaMatcher.test(message.content);
+            return message._containsKanaCommand;
+        }
+    }
+
     this.matches = function(message) {
-        return kanaMatcher.test(message.content);
+        return this._containsKanaCommand(message);
     }
 
     this.create = function(message) {
-        return new MessageReplier(message);
+        return new MessageReplier(message, this.lastJapaneseMessage);
     }
 
-    this.notify = function() {}
+    // Map of channel name to last seen japanese message
+    this.lastJapaneseMessage = {};
+
+    this.notify = function(message) {
+        if (this._containsKanaCommand(message) == false && this._containsJapanese(message) == true) {
+            // Strictly a japanese message to record
+            this.lastJapaneseMessage[message.channel.name] = message.cleanContent
+        }
+    }
 
     // Convenience function intended for unit testing only
     this._convertRomajiToKana = function(text) {
@@ -17,12 +44,12 @@ var Command = function() {
     }
 }
 
-var MessageReplier = function(message) {
+var MessageReplier = function(message, historicalState) {
     this.message = message;
 
-    var result = kanaMatcher.exec(message);
+    var result = kanaMatcher.exec(message.cleanContent);
     this.type = result[1];
-    this.sentence = result[2];
+    this.sentence = result[2] || historicalState[message.channel.name];
 }
 
 // Note that we go in a semi-reversed order so that we don't do replacements like a ->　あ before ka -> か which
@@ -190,11 +217,14 @@ function convertRomajiToHiragana(romaji) {
         romaji = romaji.replace(transliteration.ro, transliteration.hi)
     });
 
-    // Strip apostrophes. We do this after the kana table because it can help with the 'n' resolution.
-    romaji = romaji.replace(/'/g, "");
+    // Strip apostrophes and hyphens. We do this after the kana table because it can help with the 'n' resolution.
+    romaji = romaji.replace(/['\\-]/g, "");
 
     // Use full-width spaces
     romaji = romaji.replace(/ /g, "　");
+
+    // Use full-width question marks
+    romaji = romaji.replace(/\?/g, "？");
 
     return romaji;
 }
@@ -202,6 +232,19 @@ function convertRomajiToHiragana(romaji) {
 MessageReplier.prototype.execute = function() {
     var message = this.message; // needed because the below lambdas will destroy 'this'
     var convertToKana = (this.type == "kana");
+
+    if (this.sentence == undefined) {
+        // Probably caused by ~kana before detecting a japanese sentence
+        message.reply("Error: No Japanese text to convert");
+        return;
+    }
+
+    // Verify the sentence actually has japanese characters
+    if (japaneseMatcher.test(this.sentence) == false) {
+        message.reply("Error: This sentence does not appear to be in Japanese.");
+        return;
+    }
+
     message.channel.startTyping();
     try 
     {
@@ -216,9 +259,9 @@ MessageReplier.prototype.execute = function() {
             result = result + data;
         })
         phantomjs.on('close', (code) => {
-            console.log(`Transliteration completed with code ${code}`)
             if (code != 0) {
-                message.reply("Sorry, an error occurred.");
+                console.error(`Error during transliteration: ${code} for: ${message.content}`)
+                message.reply(`Sorry, an error occurred [${code}].`);
                 message.channel.stopTyping();
             } else {
                 result = result.trim();
@@ -230,6 +273,7 @@ MessageReplier.prototype.execute = function() {
             }
         })
     } catch (ex) {
+        message.reply("Sorry, an unexpected error occurred. (Details in log.)");
         console.error(`An error occurred during transliteration: ${ex}`)
         message.channel.stopTyping();
     }

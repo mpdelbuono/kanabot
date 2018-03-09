@@ -24,7 +24,8 @@
     },
     "repository": "github:mpdelbuono/kanabot",
     "config": {
-        "token": ""
+        "token": "",
+        "debug": "false"
     },
     "dependencies": {
         "discord.js": "^11.3.2",

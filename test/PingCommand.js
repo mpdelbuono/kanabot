@@ -7,10 +7,18 @@ var MockDiscordMessage = function(message) {
 
 describe("PingCommand", function() {
     beforeEach(function() {
+        process.env.npm_package_config_debug = "true";
         this.command = require("../commands/PingCommand.js");
     });
 
     describe("#matches(message)", function() {
+        it("Always returns false if 'debug' config setting is not 'true'", function() {
+            process.env.npm_package_config_debug = "false";
+            expect(this.command.matches(new MockDiscordMessage("~ping"))).to.equal(false);
+            process.env.npm_package_config_debug = "true";
+            expect(this.command.matches(new MockDiscordMessage("~ping"))).to.equal(true);
+        });
+
         it("Matches the exact discord message '~ping'", function() {
             expect(this.command.matches(new MockDiscordMessage("~ping"))).to.equal(true);
         });

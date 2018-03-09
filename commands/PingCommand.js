@@ -2,7 +2,7 @@
 var pingMatcher = RegExp("^~ping$");
 var Command = function() {
     this.matches = function(message) {
-        return pingMatcher.test(message.content);
+        return process.env.npm_package_config_debug == "true" && pingMatcher.test(message.content);
     }
 
     this.create = function(message) {

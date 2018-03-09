@@ -1,5 +1,5 @@
 const { spawn } = require('child_process');
-var kanaMatcher = RegExp("^~(kana|rom)(?:\\s*(.+))?$");
+var kanaMatcher = RegExp("^~(kana|rom)(?:\\s+(.+))?$");
 var Command = function() {
     this.matches = function(message) {
         return kanaMatcher.test(message.content);

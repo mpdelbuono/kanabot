@@ -2,8 +2,8 @@
 
 var system = require('system');
 var text = system.stdin.read();
-var sourceLang="jp";
-var targetLang="jp";
+var sourceLang="ja";
+var targetLang="ja";
 var url = "https://translate.google.com/#"+sourceLang+"/"+targetLang;
 
 var page = require('webpage').create();

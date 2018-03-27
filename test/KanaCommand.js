@@ -140,6 +140,13 @@ describe("KanaCommand", function() {
                 this.command.create(message2).execute();
                 return message2.getNextReply().then((result) => expect(result).to.equal("あたりです　か？"));
             });
+            it("Forces Japanese language transliteration", function() {
+                var message = new MockDiscordMessage("~kana 日"); // typically confused for Chinese
+                this.command.notify(message);
+                expect(this.command.matches(message)).to.be.true;
+                this.command.create(message).execute();
+                return message.getNextReply().then((result) => expect(result).to.equal("ひ"));
+            })
             it("Includes katakana where it was in the original message");
         });
 
@@ -152,6 +159,14 @@ describe("KanaCommand", function() {
                 expect(this.command.matches(message));
                 this.command.create(message).execute();
                 return message.getNextReply().then((result) => expect(result).to.equal("Nihongodesu"));
+            });
+
+            it("Forces Japanese language transliteration", function() {
+                var message = new MockDiscordMessage("~rom 日"); // typically confused for Chinese
+                this.command.notify(message);
+                expect(this.command.matches(message)).to.be.true;
+                this.command.create(message).execute();
+                return message.getNextReply().then((result) => expect(result).to.equal("Hi"));
             });
 
             it("Does not contain katakana");
